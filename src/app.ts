@@ -1,22 +1,21 @@
 import express, { Application, Request, Response, NextFunction } from "express"
 import path from "path"
-import router from "./router/apiRouter"
 import globalErrorHandler from "./middleware/globalErrorHandler"
 import httpError from "./util/httpError"
 import ResponseMessage from "./constant/responseMessage"
 import healthRouter from "./router/healthRouter"
 import helmet from "helmet"
 import cors from "cors"
+import flowRouter from "./router/flowRouter"
 
 const app: Application = express()
 
 //Middleware
 app.use(helmet())
 app.use(
-   
   cors({
     origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     credentials: true
   })
 )
@@ -27,7 +26,7 @@ app.use(express.static(path.join(__dirname, "../", "public")))
 const mainRouter = express.Router()
 
 // Registering Sub Router
-mainRouter.use(router)
+mainRouter.use("/flow", flowRouter)
 mainRouter.use(healthRouter)
 
 // Registering Main Router
@@ -46,4 +45,3 @@ app.use((req: Request, _: Response, next: NextFunction) => {
 app.use(globalErrorHandler)
 
 export default app
-
