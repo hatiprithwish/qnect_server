@@ -15,9 +15,12 @@ datasource db {
 
 model FlowChart {
   id        Int      @id @default(autoincrement())
+  flowId    String   @unique
   content   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([flowId])
 }
 
 

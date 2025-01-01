@@ -3,6 +3,7 @@ import httpResponse from "../util/httpResponse"
 import httpError from "../util/httpError"
 import ResponseMessage from "../constant/responseMessage"
 import prisma from "../config/prismaClient"
+import { randomUUID } from "crypto"
 
 export const getFlowChart = async (req: Request, res: Response, nextFunc: NextFunction) => {
   try {
@@ -12,7 +13,7 @@ export const getFlowChart = async (req: Request, res: Response, nextFunc: NextFu
     }
 
     const flowChart = await prisma.flowChart.findFirst({
-      where: { id: Number(flowId) }
+      where: { flowId: String(flowId) }
     })
 
     if (!flowChart) {
@@ -27,16 +28,21 @@ export const getFlowChart = async (req: Request, res: Response, nextFunc: NextFu
 
 export const saveFlowChart = async (req: Request, res: Response, nextFunc: NextFunction) => {
   try {
+    let { flowId } = req.query
     const flow: any = req.body?.flow
     if (!flow) {
       throw new Error("FlowChart is required")
     }
 
+    if (!flowId) {
+      flowId = randomUUID()
+    }
+
     const response = await prisma.flowChart.create({
-      data: { content: flow }
+      data: { content: flow, flowId: String(flowId) }
     })
 
-    httpResponse(req, res, 200, ResponseMessage.SUCCESS, response.id)
+    httpResponse(req, res, 200, ResponseMessage.SUCCESS, response.flowId)
   } catch (error) {
     httpError(nextFunc, error, req)
   }
