@@ -7,6 +7,7 @@ import healthRouter from "./router/healthRouter"
 import helmet from "helmet"
 import cors from "cors"
 import flowRouter from "./router/flowRouter"
+import authRouter from "./router/authRouter"
 
 const app: Application = express()
 
@@ -14,8 +15,8 @@ const app: Application = express()
 app.use(helmet())
 app.use(
   cors({
-    origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    origin: process.env.CLIENT_URL,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     credentials: true
   })
 )
@@ -27,6 +28,7 @@ const mainRouter = express.Router()
 
 // Registering Sub Router
 mainRouter.use("/flow", flowRouter)
+mainRouter.use("/auth", authRouter)
 mainRouter.use(healthRouter)
 
 // Registering Main Router

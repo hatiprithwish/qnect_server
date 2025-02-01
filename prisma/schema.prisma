@@ -13,14 +13,28 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Permission {
+  READ
+  WRITE
+  OWNER
+}
+
 model FlowChart {
-  id        Int      @id @default(autoincrement())
-  flowId    String   @unique
-  content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         Int      @id @default(autoincrement())
+  flowId     String   @unique
+  content    String
+  sharedWith Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@index([flowId])
 }
 
-
+model User {
+  id          String   @id @default(uuid()) // Automatically generated UUID
+  firebaseUid String   @unique
+  email       String   @unique
+  displayName String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

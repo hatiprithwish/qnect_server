@@ -47,3 +47,39 @@ export const saveFlowChart = async (req: Request, res: Response, nextFunc: NextF
     httpError(nextFunc, error, req)
   }
 }
+
+export const shareFlowChart = async (req: Request, nextFunc: NextFunction) => {
+  try {
+    const { id: flowId } = req.query
+    const { email, permission } = req.body
+
+    if (!flowId) {
+      throw new Error("FlowChart Id is not found in query")
+    }
+    if (!email || !permission) {
+      throw new Error("Email and permission are required")
+    }
+
+    const flowChart = await prisma.flowChart.findFirst({
+      where: { flowId: String(flowId) }
+    })
+    if (!flowChart) {
+      throw new Error("FlowChart not found in database")
+    }
+
+    // const response = await prisma.flowChart.update({
+    //   where: { flowId: String(flowId) },
+    //   data: { sharedWith: { create: { email, permission } } }
+    // })
+  } catch (error) {
+    httpError(nextFunc, error, req)
+  }
+}
+
+export const evaluateFlowChart = async (req: Request, res: Response, nextFunc: NextFunction) => {
+  try {
+    res.send("Evaluate Flow Chart")
+  } catch (error) {
+    httpError(nextFunc, error, req)
+  }
+}
