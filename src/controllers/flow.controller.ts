@@ -7,7 +7,7 @@ import { debug } from "../utils/debug";
 
 export const createOrUpdateFlow = async (req: UserRequest, res: Response) => {
   try {
-    const { flow: flowJson, flowId, systemName } = req.body;
+    const { flow: flowJson, flowId } = req.body; //TODO: get system name from user input
     const user = req.user;
     if (!flowJson) {
       res.status(400).json({ message: "Flow and userId are required" });
@@ -19,28 +19,36 @@ export const createOrUpdateFlow = async (req: UserRequest, res: Response) => {
       res.status(404).json({ message: "User not found in database" });
       return;
     }
-
-    const { nodes, connections } = FlowService.sanitizeFlow(flowJson);
-    const feedback = FlowService.evaluateFlow(nodes, connections);
-    if (
-      feedback.goodToHaveComponents.length > 0 ||
-      feedback.mustHaveComponents.length > 0 ||
-      feedback.prohibitedConnections.length > 0 ||
-      feedback.goodToHaveConnections.length > 0
-    ) {
-      res
-        .status(200)
-        .json({ success: true, message: "Flow submitted successfully", data: feedback });
-      return;
-    }
-
-    // LATER -> Handle AI Feedback in frontend
     if (!flowId) {
       const newFlowId = nanoid();
-
-      await FlowService.getAIFeedback(nodes, connections, systemName);
       await FlowService.createFlow(flowJson, newFlowId, user.uid);
     }
+
+    const { nodes, edges } = FlowService.sanitizeFlow(flowJson);
+    const feedback = FlowService.evaluateFlow(nodes, edges);
+
+    // if (
+    //   feedback.requiredNodes.length > 0 ||
+    //   feedback.goodNodes.length > 0 ||
+    //   feedback.faultyEdges.length > 0 ||
+    //   feedback.missingEdges.length > 0
+    // ) {
+    //   res
+    //     .status(200)
+    //     .json({ success: true, message: "Flow submitted successfully", feedback: feedback });
+    //   return;
+    // }
+
+    const inputFlow = { nodes: nodes, edges: edges };
+    const systemName = "Url Shortener";
+    const AIFeedback = await FlowService.getAIFeedback(inputFlow, systemName);
+    const AIFlow = await FlowService.createFlowJSONFromAIFeedback(AIFeedback);
+    console.log("AIFlow:", AIFlow);
+
+    return res.status(200).json({
+      success: true,
+      data: AIFlow,
+    });
   } catch (error: any) {
     console.error("Error in createFlow controller:", error);
     res.status(500).json({ message: error?.message || "Failed to create flow" });

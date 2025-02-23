@@ -1,6 +1,20 @@
 export type Feedback = {
-  mustHaveComponents: string[];
-  goodToHaveComponents: string[];
-  prohibitedConnections: string[];
-  goodToHaveConnections: string[];
+  requiredNodes: string[];
+  goodNodes: string[];
+  faultyEdges: string[];
+  missingEdges: string[];
+};
+
+export type AIFeedback = {
+  nodes: {
+    data: {
+      label: string;
+      feedback?: string;
+    };
+  }[];
+  edges: {
+    source: string;
+    target: string;
+    feedback?: string;
+  }[];
 };
