@@ -43,9 +43,10 @@ export const createOrUpdateFlow = async (req: UserRequest, res: Response) => {
     const systemName = "Url Shortener";
     const AIFeedback = await FlowService.getAIFeedback(inputFlow, systemName);
     const AIFlow = await FlowService.createFlowJSONFromAIFeedback(AIFeedback);
-    console.log("AIFlow:", AIFlow);
 
-    return res.status(200).json({
+    debug.log(AIFlow, "AIFlow:");
+
+    res.status(200).json({
       success: true,
       data: AIFlow,
     });

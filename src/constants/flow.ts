@@ -45,35 +45,19 @@ export const goodEdges = [
     connection: ["server", "cache"],
     message: "Server should utilize caching for better performance",
   },
-  {
-    connection: ["server", "logging"],
-    message: "Implement logging for better monitoring and debugging",
-  },
-  {
-    connection: ["server", "monitoring"],
-    message: "Server should be connected to monitoring for system health tracking",
-  },
-  {
-    connection: ["server", "api gateway"],
-    message: "Use API Gateway for better request routing and management",
-  },
+  // {
+  //   connection: ["server", "logging"],
+  //   message: "Implement logging for better monitoring and debugging",
+  // },
+  // {
+  //   connection: ["server", "monitoring"],
+  //   message: "Server should be connected to monitoring for system health tracking",
+  // },
+  // {
+  //   connection: ["server", "api gateway"],
+  //   message: "Use API Gateway for better request routing and management",
+  // },
 ];
-
-export const aiFeedbackTemplate = {
-  nodes: [
-    {
-      data: {
-        label: "node name",
-      },
-      feedback: "optional feedback",
-    },
-    // .... more nodes
-  ],
-  edges: [
-    { source: "source name", target: "target name", feedback: "optional feedback" },
-    // .... more edges
-  ],
-};
 
 export const iconNodes = new Set([
   "API Gateway",

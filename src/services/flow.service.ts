@@ -1,10 +1,10 @@
 import axios from "axios";
 import prisma from "../config/prisma.config";
 import { faultyEdges, goodEdges, goodNodes, iconNodes, requiredNodes } from "../constants/flow";
-import { FlowJSON, Node } from "../types";
-import { debug } from "../utils/debug";
-import { AIFeedback, Feedback } from "../types/flow";
+import { AIFeedback, FlowFeedback, FlowJSON, Node } from "qnect-types";
+import Utility from "./utility.service";
 import { nanoid } from "nanoid";
+import { debug } from "../utils/debug";
 
 class FlowService {
   static async createFlow(flowJson: FlowJSON, id: string, userId: string) {
@@ -41,7 +41,7 @@ class FlowService {
   }
 
   static evaluateFlow(nodes: any[], edges: any[]) {
-    const feedback: Feedback = {
+    const feedback: FlowFeedback = {
       requiredNodes: [],
       goodNodes: [],
       faultyEdges: [],
@@ -83,7 +83,7 @@ class FlowService {
     systemName: string,
   ) {
     const requestBody = {
-      model: "Meta-Llama-3.1-70B-Instruct",
+      model: "DeepSeek-R1-Llama-70B",
       messages: [
         {
           role: "user",
@@ -108,7 +108,8 @@ class FlowService {
               - If no feedback is necessary for a node or edge, you may skip it.  
 
             2. **Suggest additional nodes and edges if needed**:  
-              - If the design can be improved with extra components or connections, add them while maintaining the original format.  
+              - If the design can be improved with extra components or connections, add them while maintaining the original format.
+              - Additional nodes should be added to the **nodes** array, and additional edges to the **edges** array to maintain the structure.
 
             ### **Output Format:**  
             Your response should be **a valid JSON object** with structured feedback. **Do not add any extra characters, text, or explanations** outside the JSON object, as this will result in an error.  
@@ -155,28 +156,27 @@ class FlowService {
     return response.data.choices[0].message.content;
   }
 
+  static sanitizeAIFeedback(input: string) {
+    const jsonIndex = input.indexOf("json");
+    return input.substring(jsonIndex + 4).replace(/`/g, "");
+  }
+
   static async createFlowJSONFromAIFeedback(AIFeedback: string) {
-    console.log("AIFeedback:", AIFeedback);
-    const feedbackObj = JSON.parse(AIFeedback.replace(/`/g, ""));
+    const feedbackObj = JSON.parse(this.sanitizeAIFeedback(AIFeedback)) as AIFeedback;
+    // 1. Position nodes
+    const positionedNodes = Utility.positionNodes(feedbackObj.nodes);
+    // debug.log(positionedNodes, "Positioned Nodes");
+
     const labelToIdMap: Record<string, string> = {};
 
-    //Generate position in a circle layout
-    const nodeCount = feedbackObj.nodes?.length;
-    const radius = 200;
-    const centerX = 300;
-    const centerY = 300;
-
-    const nodes = feedbackObj.nodes?.map((node, index) => {
+    // 2. Structure Nodes
+    const nodes = positionedNodes.map((node: any) => {
       const id = nanoid();
       const label = node.data.label;
-
-      // Store the mapping of label to id
       labelToIdMap[label] = id;
 
-      // Generate position in a circle layout
-      const angle = (index / nodeCount) * 2 * Math.PI;
-      const x = centerX + radius * Math.cos(angle);
-      const y = centerY + radius * Math.sin(angle);
+      const feedback = node.feedback;
+      const position = node.position;
 
       let type: string;
       if (iconNodes.has(label)) {
@@ -187,18 +187,18 @@ class FlowService {
 
       return {
         id,
-        type: "shape",
-        position: { x, y },
-        data: { label, type: "circle" },
-        measured: {
-          width: 50,
-          height: 50,
-        },
+        position,
+        type: "feedback",
+        data: { label, feedback, type: "feedback" },
         selected: false,
         dragging: false,
       };
     });
 
+    console.log("labelToIdMap", labelToIdMap);
+    console.log("nodes", nodes);
+
+    // 3. Structure Edges
     const edges = feedbackObj.edges?.map((edge) => {
       const sourceId = labelToIdMap[edge.source];
       const targetId = labelToIdMap[edge.target];
@@ -220,7 +220,7 @@ class FlowService {
         sourceHandle,
         target: targetId,
         targetHandle,
-        type: "labelled",
+        type: "default",
         markerEnd: {
           type: "arrowclosed",
         },
@@ -228,14 +228,14 @@ class FlowService {
       };
     });
 
+    // 4. Calculate Viewport
+    const viewport = Utility.calculateViewport(nodes);
+
+    // 5. Return Flow JSON
     return {
       nodes,
       edges,
-      viewport: {
-        x: 105.82,
-        y: 64.07,
-        zoom: 1.04,
-      },
+      viewport,
     };
   }
 }

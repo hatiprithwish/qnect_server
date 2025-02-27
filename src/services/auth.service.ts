@@ -1,4 +1,3 @@
-import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import prisma from "../config/prisma.config";
 import { auth } from "../config/firebase.config";
 

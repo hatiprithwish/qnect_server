@@ -1,5 +1,5 @@
 import prisma from "../config/prisma.config";
-import { User } from "../types/user";
+import { User } from "qnect-types";
 
 type UserWhereInput = {
   id?: string;
