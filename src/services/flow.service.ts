@@ -1,6 +1,12 @@
 import axios from "axios";
 import prisma from "../config/prisma.config";
-import { faultyEdges, goodEdges, goodNodes, iconNodes, requiredNodes } from "../constants/flow";
+import {
+  faultyEdges,
+  goodEdges,
+  goodNodes,
+  iconNodes,
+  requiredNodes,
+} from "../constants/flow.const";
 import { AIFeedback, FlowFeedback, FlowJSON, Node } from "qnect-types";
 import Utility from "./utility.service";
 import { nanoid } from "nanoid";
@@ -80,7 +86,7 @@ class FlowService {
 
   static async getAIFeedback(
     inputFlow: { nodes: string[]; edges: string[][] },
-    systemName: string,
+    problemStatement: string,
   ) {
     const requestBody = {
       model: "DeepSeek-R1-Llama-70B",
@@ -88,7 +94,7 @@ class FlowService {
         {
           role: "user",
           content: `
-            You are a **system design evaluator** with expertise in **architectural analysis and optimization**. Your task is to **analyze the system design** for ${systemName} based on the given nodes (system components) and edges (connections between components). Your evaluation should identify potential improvements, missing elements, and possible inefficiencies.  
+            You are a **system design evaluator** with expertise in **architectural analysis and optimization**. Your task is to **analyze the system design** for ${problemStatement} based on the given nodes (system components) and edges (connections between components). Your evaluation should identify potential improvements, missing elements, and possible inefficiencies.  
             ### **System Design Overview:**  
             Nodes represent components, and edges represent their connections. Each edge follows the format:  
             - **Source**: The originating component  
@@ -170,7 +176,7 @@ class FlowService {
     const labelToIdMap: Record<string, string> = {};
 
     // 2. Structure Nodes
-    const nodes = positionedNodes.map((node: any) => {
+    const nodes = positionedNodes.map((node: any, idx: number) => {
       const id = nanoid();
       const label = node.data.label;
       labelToIdMap[label] = id;
@@ -190,13 +196,10 @@ class FlowService {
         position,
         type: "feedback",
         data: { label, feedback, type: "feedback" },
-        selected: false,
-        dragging: false,
+        // selected: false,
+        // dragging: false,
       };
     });
-
-    console.log("labelToIdMap", labelToIdMap);
-    console.log("nodes", nodes);
 
     // 3. Structure Edges
     const edges = feedbackObj.edges?.map((edge) => {
@@ -235,7 +238,11 @@ class FlowService {
     return {
       nodes,
       edges,
-      viewport,
+      viewport: {
+        zoom: 1,
+        x: 0,
+        y: 0,
+      },
     };
   }
 }

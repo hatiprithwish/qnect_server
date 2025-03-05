@@ -1,6 +1,6 @@
 export const requiredNodes = ["client", "server", "database"];
 
-export const goodNodes = ["load balancer", "cache", "logging", "monitoring", "api gateway"];
+export const goodNodes = ["load balancer", "cache"];
 
 export const faultyEdges = [
   {
@@ -45,18 +45,6 @@ export const goodEdges = [
     connection: ["server", "cache"],
     message: "Server should utilize caching for better performance",
   },
-  // {
-  //   connection: ["server", "logging"],
-  //   message: "Implement logging for better monitoring and debugging",
-  // },
-  // {
-  //   connection: ["server", "monitoring"],
-  //   message: "Server should be connected to monitoring for system health tracking",
-  // },
-  // {
-  //   connection: ["server", "api gateway"],
-  //   message: "Use API Gateway for better request routing and management",
-  // },
 ];
 
 export const iconNodes = new Set([

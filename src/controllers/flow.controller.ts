@@ -7,7 +7,7 @@ import { debug } from "../utils/debug";
 
 export const createOrUpdateFlow = async (req: UserRequest, res: Response) => {
   try {
-    const { flow: flowJson, flowId } = req.body; //TODO: get system name from user input
+    const { flowData: flowJson, flowId, problemStatement } = req.body; //TODO: get system name from user input
     const user = req.user;
     if (!flowJson) {
       res.status(400).json({ message: "Flow and userId are required" });
@@ -27,21 +27,20 @@ export const createOrUpdateFlow = async (req: UserRequest, res: Response) => {
     const { nodes, edges } = FlowService.sanitizeFlow(flowJson);
     const feedback = FlowService.evaluateFlow(nodes, edges);
 
-    // if (
-    //   feedback.requiredNodes.length > 0 ||
-    //   feedback.goodNodes.length > 0 ||
-    //   feedback.faultyEdges.length > 0 ||
-    //   feedback.missingEdges.length > 0
-    // ) {
-    //   res
-    //     .status(200)
-    //     .json({ success: true, message: "Flow submitted successfully", feedback: feedback });
-    //   return;
-    // }
+    if (
+      feedback.requiredNodes.length > 0 ||
+      feedback.goodNodes.length > 0 ||
+      feedback.faultyEdges.length > 0 ||
+      feedback.missingEdges.length > 0
+    ) {
+      res
+        .status(200)
+        .json({ success: true, message: "Flow submitted successfully", feedback: feedback });
+      return;
+    }
 
     const inputFlow = { nodes: nodes, edges: edges };
-    const systemName = "Url Shortener";
-    const AIFeedback = await FlowService.getAIFeedback(inputFlow, systemName);
+    const AIFeedback = await FlowService.getAIFeedback(inputFlow, problemStatement);
     const AIFlow = await FlowService.createFlowJSONFromAIFeedback(AIFeedback);
 
     debug.log(AIFlow, "AIFlow:");
