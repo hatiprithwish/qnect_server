@@ -8,9 +8,7 @@ import {
   requiredNodes,
 } from "../constants/flow.const";
 import { AIFeedback, FlowFeedback, FlowJSON, Node } from "qnect-types";
-import Utility from "./utility.service";
 import { nanoid } from "nanoid";
-import { debug } from "../utils/debug";
 
 class FlowService {
   static async createFlow(flowJson: FlowJSON, id: string, userId: string) {
@@ -32,13 +30,18 @@ class FlowService {
 
   static sanitizeFlow(input: any) {
     let nodes = [];
-    input.nodes.map((node: any) => nodes.push(node.data?.label));
+    input.nodes.map((node: any) =>
+      nodes.push(node.data?.label.trim().toLowerCase().replace(/-/g, " ")),
+    );
 
     let edges = [];
     input.edges.map((edge: any) => {
       const sourceNode = input.nodes.find((node: Node) => node.id === edge.source);
       const targetNode = input.nodes.find((node: Node) => node.id === edge.target);
-      edges.push([sourceNode.data.label, targetNode.data.label]);
+      edges.push([
+        sourceNode.data.label.trim().toLowerCase().replace(/-/g, " "),
+        targetNode.data.label.trim().toLowerCase().replace(/-/g, " "),
+      ]);
     });
 
     //LATER: Handle Edge labels
@@ -111,7 +114,7 @@ class FlowService {
             ### **Task:**  
             1. **Analyze each node and edge**:  
               - Provide feedback on any inefficiencies, missing details, or potential issues.  
-              - If no feedback is necessary for a node or edge, you may skip it.  
+              - If no feedback is necessary for a node or edge, skip it.  
 
             2. **Suggest additional nodes and edges if needed**:  
               - If the design can be improved with extra components or connections, add them while maintaining the original format.
@@ -169,20 +172,25 @@ class FlowService {
 
   static async createFlowJSONFromAIFeedback(AIFeedback: string) {
     const feedbackObj = JSON.parse(this.sanitizeAIFeedback(AIFeedback)) as AIFeedback;
-    // 1. Position nodes
-    const positionedNodes = Utility.positionNodes(feedbackObj.nodes);
-    // debug.log(positionedNodes, "Positioned Nodes");
 
-    const labelToIdMap: Record<string, string> = {};
+    const labelToIdMap: Record<string, string> = {}; // We need this to find source and target IDs for edges
 
-    // 2. Structure Nodes
-    const nodes = positionedNodes.map((node: any, idx: number) => {
+    // Calculate Node Positions
+    const nodeCount = feedbackObj.nodes?.length;
+    const radius = 200;
+    const centerX = 300;
+    const centerY = 300;
+
+    // Structure Nodes
+    const nodes = feedbackObj.nodes.map((node: any, idx: number) => {
       const id = nanoid();
       const label = node.data.label;
       labelToIdMap[label] = id;
-
       const feedback = node.feedback;
-      const position = node.position;
+
+      const angle = (idx / nodeCount) * 2 * Math.PI;
+      const x = centerX + radius * Math.cos(angle);
+      const y = centerY + radius * Math.sin(angle);
 
       let type: string;
       if (iconNodes.has(label)) {
@@ -193,15 +201,13 @@ class FlowService {
 
       return {
         id,
-        position,
+        position: { x, y },
         type: "feedback",
         data: { label, feedback, type: "feedback" },
-        // selected: false,
-        // dragging: false,
       };
     });
 
-    // 3. Structure Edges
+    // Structure Edges
     const edges = feedbackObj.edges?.map((edge) => {
       const sourceId = labelToIdMap[edge.source];
       const targetId = labelToIdMap[edge.target];
@@ -212,8 +218,8 @@ class FlowService {
         );
       }
 
-      const sourceHandle = `${sourceId}-bottom`;
-      const targetHandle = `${targetId}-top`;
+      const sourceHandle = `${sourceId}-right`;
+      const targetHandle = `${targetId}-left`;
 
       const edgeId = `xy-edge__${sourceId}${sourceHandle}-${targetId}${targetHandle}`;
 
@@ -223,23 +229,21 @@ class FlowService {
         sourceHandle,
         target: targetId,
         targetHandle,
-        type: "default",
+        type: "smoothstep",
+        animated: true,
         markerEnd: {
-          type: "arrowclosed",
+          type: "arrow",
         },
         selected: false,
       };
     });
 
-    // 4. Calculate Viewport
-    const viewport = Utility.calculateViewport(nodes);
-
-    // 5. Return Flow JSON
+    // Return Flow JSON
     return {
       nodes,
       edges,
       viewport: {
-        zoom: 1,
+        zoom: 0.5,
         x: 0,
         y: 0,
       },
