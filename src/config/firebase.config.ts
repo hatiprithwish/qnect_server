@@ -1,10 +1,7 @@
-import firebaseAdmin, { ServiceAccount } from "firebase-admin";
-import serviceAccount from "../google_credentials.json";
+import firebaseAdmin from "firebase-admin";
 
-const admin = firebaseAdmin.initializeApp({
-  credential: firebaseAdmin.credential.cert(serviceAccount as ServiceAccount),
-});
+const admin: firebaseAdmin.app.App = firebaseAdmin.initializeApp();
 
-const auth = admin.auth();
+const auth: firebaseAdmin.auth.Auth = admin.auth();
 
 export { auth, admin };
