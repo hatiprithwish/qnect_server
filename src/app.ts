@@ -1,49 +1,47 @@
-import express, { Application, Request, Response, NextFunction } from "express"
-import path from "path"
-import globalErrorHandler from "./middleware/globalErrorHandler"
-import httpError from "./util/httpError"
-import ResponseMessage from "./constant/responseMessage"
-import healthRouter from "./router/healthRouter"
-import helmet from "helmet"
-import cors from "cors"
-import flowRouter from "./router/flowRouter"
-import authRouter from "./router/authRouter"
+import express, { Application, NextFunction, Request, Response } from "express";
+import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
+import errorHandler from "./middlewares/error.middleware";
+import authRouter from "./routes/auth.route";
+import flowRouter from "./routes/flow.route";
+import healthRouter from "./routes/health.route";
+import cors from "cors";
 
-const app: Application = express()
+dotenv.config();
 
-//Middleware
-app.use(helmet())
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    credentials: true
-  })
-)
-app.use(express.json())
-app.use(express.static(path.join(__dirname, "../", "public")))
+const app: Application = express();
 
-//Main Router
-const mainRouter = express.Router()
+app.use(express.json());
+app.use(cookieParser());
 
-// Registering Sub Router
-mainRouter.use("/flow", flowRouter)
-mainRouter.use("/auth", authRouter)
-mainRouter.use(healthRouter)
+// const corsOptions = {
+//   origin: "http://localhost:5173/",
+//   credentials: true, // Allow cookies
+//   methods: ["GET", "HEAD", "POST", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE", "PATCH"],
+// };
+app.use(cors());
 
-// Registering Main Router
-app.use("/api/v1", mainRouter)
+const PORT = process.env.PORT || 8080;
 
-// 404 Not Found Route
-app.use((req: Request, _: Response, next: NextFunction) => {
-  try {
-    throw new Error(ResponseMessage.NOT_FOUND("Route"))
-  } catch (error) {
-    httpError(next, error, req, 404)
-  }
-})
+app.listen(PORT, () => {
+  console.log(`🚦 Server is running on port ${PORT}`);
+});
 
-// GLOBAL ERROR HANDLER FallBack
-app.use(globalErrorHandler)
+// Routes
+const baseRouter = express.Router();
+baseRouter.use("/", healthRouter);
+baseRouter.use("/auth", authRouter);
+baseRouter.use("/flow", flowRouter);
 
-export default app
+app.use("/api/v1", baseRouter);
+
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.status(404).json({
+    status: "error",
+    message: "API route not found",
+  });
+});
+
+app.use(errorHandler); // global error handler
+
+export default app;
