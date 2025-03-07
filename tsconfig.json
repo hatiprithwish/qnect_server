@@ -7,7 +7,6 @@
     "strict": true /* Enable all strict type-checking options. */,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node",
     "resolveJsonModule": true /* Enable importing .json files. */,
     "allowArbitraryExtensions": true
