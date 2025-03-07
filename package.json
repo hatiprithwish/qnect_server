@@ -3,6 +3,9 @@
   "version": "2.0.0",
   "description": "Backend for Qnect - the System Design Judge",
   "main": "src/app.js",
+  "engines": {
+    "node": "22"
+  },
   "scripts": {
     "start": "node dist/app.js",
     "build": "tsc",
