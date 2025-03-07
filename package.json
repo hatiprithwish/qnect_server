@@ -2,14 +2,14 @@
   "name": "qnect-server",
   "version": "2.0.0",
   "description": "Backend for Qnect - the System Design Judge",
-  "main": "src/app.js",
+  "main": "dist/app.js",
   "engines": {
     "node": "22"
   },
   "scripts": {
-    "start": "node dist/app.js",
     "build": "tsc",
-    "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
+    "start": "node dist/app.js",
+    "dev": "ts-node-dev src/app.ts",
     "test": "vitest",
     "test:flow": "vitest src/tests/flow.test.ts"
   },
