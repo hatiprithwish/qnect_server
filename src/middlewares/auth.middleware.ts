@@ -27,12 +27,18 @@ export const verifyUser = async (req: UserRequest, res: Response, next: NextFunc
       res.status(401).json({ error: "Unauthorized: Invalid or expired token" });
       return;
     }
+    if (!userRecord?.email || !userRecord?.displayName) {
+      res
+        .status(401)
+        .json({ error: `${!userRecord?.email ? "Email" : "Name"} missing in user record` });
+      return;
+    }
 
     // Attach user data to request
     req.user = {
       uid: userRecord.uid,
       email: userRecord.email,
-      name: userRecord.displayName || "User",
+      name: userRecord.displayName,
     };
 
     next();

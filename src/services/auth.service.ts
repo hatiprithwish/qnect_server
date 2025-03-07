@@ -12,6 +12,9 @@ class AuthService {
     if (!userCredential) {
       throw new Error("Firebase user registration failed");
     }
+    if (!userCredential.email || !userCredential.displayName) {
+      throw new Error(`${!userCredential.email ? "Email" : "Name "} is missing in user credential`);
+    }
 
     const emailVerificationToken = await auth.createCustomToken(userCredential.uid);
 

@@ -29,12 +29,12 @@ class FlowService {
   }
 
   static sanitizeFlow(input: any) {
-    let nodes = [];
+    let nodes: string[] = [];
     input.nodes.map((node: any) =>
       nodes.push(node.data?.label.trim().toLowerCase().replace(/-/g, " ")),
     );
 
-    let edges = [];
+    let edges: [string, string][] = [];
     input.edges.map((edge: any) => {
       const sourceNode = input.nodes.find((node: Node) => node.id === edge.source);
       const targetNode = input.nodes.find((node: Node) => node.id === edge.target);
@@ -49,7 +49,7 @@ class FlowService {
     return { nodes, edges };
   }
 
-  static evaluateFlow(nodes: any[], edges: any[]) {
+  static evaluateFlow(nodes: string[], edges: [string, string][]) {
     const feedback: FlowFeedback = {
       requiredNodes: [],
       goodNodes: [],

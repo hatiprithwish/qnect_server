@@ -9,6 +9,10 @@ export const createOrUpdateFlow = async (req: UserRequest, res: Response) => {
   try {
     const { flowData: flowJson, flowId, problemStatement } = req.body; //TODO: get system name from user input
     const user = req.user;
+    if (!user) {
+      res.status(401).send("No user on request");
+      return;
+    }
     if (!flowJson) {
       res.status(400).json({ message: "Flow and userId are required" });
       return;
