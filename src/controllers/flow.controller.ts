@@ -18,15 +18,15 @@ export const createOrUpdateFlow = async (req: UserRequest, res: Response) => {
       return;
     }
 
-    const dbUser = await UserService.findUser({ id: user.uid });
-    if (!dbUser) {
-      res.status(404).json({ message: "User not found in database" });
-      return;
-    }
-    if (!flowId) {
-      const newFlowId = nanoid();
-      await FlowService.createFlow(flowJson, newFlowId, user.uid);
-    }
+    // const dbUser = await UserService.findUser({ id: user.uid });
+    // if (!dbUser) {
+    //   res.status(404).json({ message: "User not found in database" });
+    //   return;
+    // }
+    // if (!flowId) {
+    //   const newFlowId = nanoid();
+    //   await FlowService.createFlow(flowJson, newFlowId, user.uid);
+    // }
 
     const { nodes, edges } = FlowService.sanitizeFlow(flowJson);
     const feedback = FlowService.evaluateFlow(nodes, edges);
